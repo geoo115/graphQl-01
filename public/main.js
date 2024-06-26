@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
             displayTable(".xpTable", xpData.user[0].xps, ["amount"], "XP Data");
             displayTable(".ratioTable", auditData.user[0].audits, ["createdAt", "grade"], "Ratio Data");
-            displayTable(".skillTable", skillData.user[0].transactions, ["createdAt", "amount", "type", "projectName"], "Skill Go Data");
+            displayTable(".skillTable", skillGoProjects, ["createdAt", "amount", "type", "projectName"], "Skill Go Data");
     
         } catch (error) {
             showError("Error fetching data.");
@@ -122,59 +122,59 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelector(".RatioH1").textContent = `Ratio: ${averageRatio.toFixed(2)}`;
     }
 
- // Function to display Skill Go data
-function displaySkillGo(skillData) {
-    // Extract project names from paths
-    const skillGoProjects = skillData.map(skill => {
-        const projectPathParts = skill.path.split('/');
-        const projectName = projectPathParts[projectPathParts.length - 1];
-        return {
-            ...skill,
-            projectName
-        };
-    });
+    // Function to display Skill Go data
+    function displaySkillGo(skillData) {
+        // Extract project names from paths
+        const skillGoProjects = skillData.map(skill => {
+            const projectPathParts = skill.path.split('/');
+            const projectName = projectPathParts[projectPathParts.length - 1];
+            return {
+                ...skill,
+                projectName
+            };
+        });
 
-    // Log Skill Go data with project names to console
-    console.log('Skill Go Data with Project Names:', skillGoProjects);
+        // Log Skill Go data with project names to console
+        console.log('Skill Go Data with Project Names:', skillGoProjects);
 
-    // Calculate total Skill Go amount
-    const totalSkillGo = skillGoProjects.reduce((sum, skill) => sum + skill.amount, 0);
-    document.querySelector(".SkillH1").textContent = `Skill Go: ${totalSkillGo}`;
+        // Calculate total Skill Go amount
+        const totalSkillGo = skillGoProjects.reduce((sum, skill) => sum + skill.amount, 0);
+        document.querySelector(".SkillH1").textContent = `Skill Go: ${totalSkillGo}`;
 
-    // Display Skill Go data in table
-    displayTable(".skillTable", skillGoProjects, ["createdAt", "amount", "type", "projectName"], "Skill Go Data");
-}
+        // Display Skill Go data in table
+        displayTable(".skillTable", skillGoProjects, ["createdAt", "amount", "type", "projectName"], "Skill Go Data");
+    }
 
-// Function to display data in a table
-function displayTable(containerSelector, data, keys, title) {
-    const container = document.querySelector(containerSelector);
-    container.innerHTML = `<h3>${title}</h3>`;
-    const table = document.createElement("table");
+    // Function to display data in a table
+    function displayTable(containerSelector, data, keys, title) {
+        const container = document.querySelector(containerSelector);
+        container.innerHTML = `<h3>${title}</h3>`;
+        const table = document.createElement("table");
 
-    const thead = document.createElement("thead");
-    const tr = document.createElement("tr");
-    keys.forEach(key => {
-        const th = document.createElement("th");
-        th.textContent = key;
-        tr.appendChild(th);
-    });
-    thead.appendChild(tr);
-    table.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-    data.forEach(item => {
+        const thead = document.createElement("thead");
         const tr = document.createElement("tr");
         keys.forEach(key => {
-            const td = document.createElement("td");
-            td.textContent = item[key] || ''; // Ensure empty cells are handled
-            tr.appendChild(td);
+            const th = document.createElement("th");
+            th.textContent = key;
+            tr.appendChild(th);
         });
-        tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
+        thead.appendChild(tr);
+        table.appendChild(thead);
 
-    container.appendChild(table);
-}
+        const tbody = document.createElement("tbody");
+        data.forEach(item => {
+            const tr = document.createElement("tr");
+            keys.forEach(key => {
+                const td = document.createElement("td");
+                td.textContent = item[key] || ''; 
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        container.appendChild(table);
+    }
 
     function displayGraph(containerSelector, data, key, color, title) {
         const container = d3.select(containerSelector);
@@ -224,38 +224,6 @@ function displayTable(containerSelector, data, keys, title) {
             .style("text-decoration", "underline")
             .text(title);
     }
-
-    function displayTable(containerSelector, data, keys, title) {
-        const container = document.querySelector(containerSelector);
-        container.innerHTML = `<h3>${title}</h3>`;
-        const table = document.createElement("table");
-    
-        const thead = document.createElement("thead");
-        const tr = document.createElement("tr");
-        keys.forEach(key => {
-            const th = document.createElement("th");
-            th.textContent = key;
-            tr.appendChild(th);
-        });
-        thead.appendChild(tr);
-        table.appendChild(thead);
-    
-        const tbody = document.createElement("tbody");
-        data.forEach(item => {
-            const tr = document.createElement("tr");
-            keys.forEach(key => {
-                const td = document.createElement("td");
-                td.textContent = item[key];
-                tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
-        });
-        table.appendChild(tbody);
-    
-        container.appendChild(table);
-    }
-    
-    
 
     function showError(message) {
         errorMsg.textContent = message;
