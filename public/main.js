@@ -4,8 +4,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const graphQLEndpoint = "https://learn.01founders.co/api/graphql-engine/v1/graphql";
     const profileQuery = `user { attrs, campus }`;
     const skillGoQuery = `user { transactions(where: {type: {_eq: "skill_go"}}, order_by: {amount: asc}) { createdAt, amount, type, path } }`;
-    const xpQuery = `user { xps { amount }, firstName }`;
+    const xpQuery = `user { xps { amount, path } }`;
     const auditRatioQuery = `user { audits(order_by: {createdAt: asc}, where: {grade: {_is_null: false}}) { grade, createdAt } }`;
+    const londonDiv01ProjectsQuery = `
+        user { 
+            transactions(where: {path: {_like: "/london/div-01/%"}}, order_by: {createdAt: asc}) { 
+                createdAt, amount, type, path 
+            } 
+        }
+    `;
 
     document.querySelector("form").addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -43,11 +50,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function fetchDataAndDisplay(token) {
         try {
-            const [profileData, auditData, xpData, skillData] = await Promise.all([
+            const [profileData, auditData, xpData, skillData, londonDiv01ProjectsData] = await Promise.all([
                 fetchGraphQLData(profileQuery, token),
                 fetchGraphQLData(auditRatioQuery, token),
                 fetchGraphQLData(xpQuery, token),
                 fetchGraphQLData(skillGoQuery, token),
+                fetchGraphQLData(londonDiv01ProjectsQuery, token),
             ]);
     
             // Log fetched data to console
@@ -55,10 +63,11 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log('Audit Data:', auditData);
             console.log('XP Data:', xpData);
             console.log('Skill Go Data:', skillData);
+            console.log('London Div-01 Projects Data:', londonDiv01ProjectsData);
     
             // Display data
             displayProfileData(profileData);
-            displayXP(xpData.user[0].xps);
+            displayXP(xpData.user[0].xps); // This will now display XP by project
             displayRatio(auditData.user[0].audits);
             displaySkillGo(skillData.user[0].transactions);
     
@@ -67,16 +76,18 @@ document.addEventListener("DOMContentLoaded", function () {
             displayGraph(".graphXpAmount", xpData.user[0].xps, "amount", "green", "XP Evolution");
             displayGraph(".graphSkillAmount", skillData.user[0].transactions, "amount", "red", "Skill Go Evolution");
     
-            displayTable(".xpTable", xpData.user[0].xps, ["amount"], "XP Data");
+            displayTable(".xpTable", xpData.user[0].xps, ["createdAt", "amount", "path"], "XP Earned by Project"); // Update the columns
             displayTable(".ratioTable", auditData.user[0].audits, ["createdAt", "grade"], "Ratio Data");
-            displayTable(".skillTable", skillGoProjects, ["createdAt", "amount", "type", "projectName"], "Skill Go Data");
+            displayTable(".skillTable", skillData.user[0].transactions, ["createdAt", "amount", "type", "projectName"], "Skill Go Data");
+    
+            // Display the new section
+            displayLondonDiv01Projects(londonDiv01ProjectsData.user[0].transactions);
     
         } catch (error) {
             showError("Error fetching data.");
             console.error(error);
         }
     }
-    
     
 
     async function fetchGraphQLData(query, token) {
@@ -88,16 +99,15 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             body: JSON.stringify({ query: `query { ${query} }` }),
         });
-    
+
         const data = await response.json();
         if (data.errors) throw new Error(data.errors.map(err => err.message).join(", "));
-    
+
         // Log fetched GraphQL data to console
         console.log('Fetched GraphQL Data:', data);
-    
+
         return data.data;
     }
-    
 
     function displayProfileData(data) {
         const user = data.user[0];
@@ -122,9 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelector(".RatioH1").textContent = `Ratio: ${averageRatio.toFixed(2)}`;
     }
 
-    // Function to display Skill Go data
     function displaySkillGo(skillData) {
-        // Extract project names from paths
         const skillGoProjects = skillData.map(skill => {
             const projectPathParts = skill.path.split('/');
             const projectName = projectPathParts[projectPathParts.length - 1];
@@ -134,23 +142,34 @@ document.addEventListener("DOMContentLoaded", function () {
             };
         });
 
-        // Log Skill Go data with project names to console
         console.log('Skill Go Data with Project Names:', skillGoProjects);
 
-        // Calculate total Skill Go amount
         const totalSkillGo = skillGoProjects.reduce((sum, skill) => sum + skill.amount, 0);
         document.querySelector(".SkillH1").textContent = `Skill Go: ${totalSkillGo}`;
 
-        // Display Skill Go data in table
         displayTable(".skillTable", skillGoProjects, ["createdAt", "amount", "type", "projectName"], "Skill Go Data");
     }
 
-    // Function to display data in a table
+    function displayLondonDiv01Projects(data) {
+        const projects = data.map(project => {
+            const projectPathParts = project.path.split('/');
+            const projectName = projectPathParts[projectPathParts.length - 1];
+            return {
+                ...project,
+                projectName
+            };
+        });
+
+        console.log('London Div-01 Project Data with Project Names:', projects);
+
+        displayTable(".londonDiv01ProjectsTable", projects, ["createdAt", "amount", "type", "projectName"], "London Div-01 Projects Data");
+    }
+
     function displayTable(containerSelector, data, keys, title) {
         const container = document.querySelector(containerSelector);
         container.innerHTML = `<h3>${title}</h3>`;
         const table = document.createElement("table");
-
+    
         const thead = document.createElement("thead");
         const tr = document.createElement("tr");
         keys.forEach(key => {
@@ -160,7 +179,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         thead.appendChild(tr);
         table.appendChild(thead);
-
+    
         const tbody = document.createElement("tbody");
         data.forEach(item => {
             const tr = document.createElement("tr");
@@ -172,9 +191,10 @@ document.addEventListener("DOMContentLoaded", function () {
             tbody.appendChild(tr);
         });
         table.appendChild(tbody);
-
+    
         container.appendChild(table);
     }
+    
 
     function displayGraph(containerSelector, data, key, color, title) {
         const container = d3.select(containerSelector);
