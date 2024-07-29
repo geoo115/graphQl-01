@@ -318,25 +318,24 @@ function AuditRatio(data) {
     data.forEach(project => {
         if (project.type === 'down') {
             sums.down += project.amount;
-            cumulativeData.down.push({ date: new Date(project.createdAt), cumulative: sums.down / 1000 }); // Divide by 1000
+            cumulativeData.down.push({ date: new Date(project.createdAt), cumulative: sums.down / 1000 }); 
         } else if (project.type === 'up') {
             sums.up += project.amount;
-            cumulativeData.up.push({ date: new Date(project.createdAt), cumulative: sums.up / 1000 }); // Divide by 1000
+            cumulativeData.up.push({ date: new Date(project.createdAt), cumulative: sums.up / 1000 }); 
         }
     });
 
     // Calculate ratios
     const ratio = sums.down === 0 ? 0 : sums.up / sums.down;
-    const formattedRatio = (ratio / 1000).toFixed(1); // Format to 1 decimal place and divide by 1000
-
-    // Log the sums and ratio to the console
-    console.log('Sum of amounts for type "down":', (sums.down / 1000)); // Divide by 1000
-    console.log('Sum of amounts for type "up":', (sums.up / 1000)); // Divide by 1000
-    console.log('Ratio:', formattedRatio);
-
-    // Display the formatted ratio in the HTML
-    document.querySelector(".RatioH1").textContent = "Audit Ratio: " + formattedRatio + " KB";
-
+    const formattedRatio = (ratio).toFixed(1); 
+  
+        // Log the sums and ratio to the console
+        console.log('Sum of amounts for type "down":', sums.down);
+        console.log('Sum of amounts for type "up":', sums.up);
+        console.log('Ratio:', formattedRatio);
+    
+        // Display the formatted ratio in the HTML
+        document.querySelector(".RatioH1").textContent = "Audit Ratio: " + formattedRatio;
     // Create horizontal bar chart
     const chartData = [
         { type: 'Done', amount: Math.ceil(sums.up / 1000) }, 
