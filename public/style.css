@@ -155,18 +155,28 @@ img {
     }
 }
 
-.radar-chart {
-    max-width: 100%;
-    max-height: 100%;
-    
+.loginFormDiv {
+    display: flex;
 }
-.axis-label {
-    fill: #fff;
-    font-size: 12px;
+.profileDiv {
+    display: none;
 }
-.radar-area {
-    fill: #7a4eff;
-    fill-opacity: 0.5;
-    stroke: #7a4eff;
-    stroke-width: 2;
+
+#logoutButton{
+    background-color: rgb(55, 146, 47);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    width: 20%;
+    margin: auto;
+    transition: all 0.4s ease-out;
+    font-weight: bold;
+    font-size: 18px;
+    letter-spacing: 3px;
+}
+
+#logoutButton:hover, #logoutButton:focus {
+    box-shadow: 0 0 20px 5px goldenrod;
 }

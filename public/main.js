@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } 
         }
     `;
-    
+
     document.querySelector("form").addEventListener("submit", async function (e) {
         e.preventDefault();
         const username = document.querySelector(".name").value;
@@ -31,6 +31,14 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (error) {
             showError(error.message);
         }
+    });
+
+    // Add event listener for logout button
+    document.querySelector("#logoutButton").addEventListener("click", function () {
+        localStorage.removeItem("token");
+        document.querySelector(".loginFormDiv").style.display = "flex";
+        document.querySelector(".profileDiv").style.display = "none";
+        document.querySelector("#logoutButton").style.display = "none";
     });
 
     async function authenticateUser(username, password) {
@@ -90,6 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const user = data.user[0];
         document.querySelector(".loginFormDiv").style.display = "none";
         document.querySelector(".profileDiv").style.display = "flex";
+        document.querySelector("#logoutButton").style.display = "block"; // Show logout button
 
         document.querySelector(".usernameTitle").textContent = `${user.attrs.firstName} ${user.attrs.lastName}`;
         document.querySelector(".userEmail").innerHTML = `<span class='Span'>E-mail: </span>${user.attrs.email}`;

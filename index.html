@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GraphLog</title>
+    <title>Graphql</title>
     <link rel="stylesheet" href="public/style.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -12,14 +12,16 @@
 
     <div class="loginFormDiv">
         <form class="loginForm" method="post">
-            <h1 class="formTitle">GraphLog</h1>
+            <h1 class="formTitle">GraphQl Login</h1>
             <input type="text" class="name" placeholder="Username" required>
             <input type="password" class="password" placeholder="Password" required>
             <input type="submit" value="Login" class="btnSub">
             <p class="errorMsg">Please Enter Username and Password</p>
         </form>
     </div>
-   
+
+    <button id="logoutButton" style="display: none;">Logout</button>
+
     <div class="profileDiv">
         <div class="userIdentificationSection">
             <div class="userInformationDiv">
