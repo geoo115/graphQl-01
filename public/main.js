@@ -60,9 +60,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             displayProfileData(profileData);
             displayXP(xpData.user[0].xps);
-            displayAuditGraph(auditData.user[0].audits);
             displaySkillGraph(skillData.user[0].transactions);
             displayLondonDiv01Projects(londonDiv01ProjectsData.user[0].transactions);
+            AuditRatio(londonDiv01ProjectsData.user[0].transactions);
 
         } catch (error) {
             console.error(error);
@@ -95,97 +95,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelector(".userEmail").innerHTML = `<span class='Span'>E-mail: </span>${user.attrs.email}`;
         document.querySelector(".userPhoneNumber").innerHTML = `<span class='Span'>Telephone: </span>${user.attrs.tel}`;
         document.querySelector(".userCampus").innerHTML = `<span class='Span'>Campus: </span>${user.campus}`;
-    }
-
-    function displayAuditGraph(audits) {
-        const data = audits.map((d, i) => ({ x: new Date(d.createdAt), y: d.grade }));
-        createAreaChart(".graphRatioAmount", data, "Audit Grades", "Grades", "Date");
-    }
-    
-    function createAreaChart(containerSelector, data, title, yAxisLabel, xAxisLabel) {
-        const container = document.querySelector(containerSelector);
-        container.innerHTML = '';
-      
-        const margin = { top: 20, right: 30, bottom: 40, left: 40 };
-        const width = 800 - margin.left - margin.right;
-        const height = 400 - margin.top - margin.bottom;
-      
-        const svg = d3.select(container)
-            .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
-      
-        const x = d3.scaleTime().domain(d3.extent(data, d => d.x)).range([0, width]);
-        const y = d3.scaleLinear().domain([0, d3.max(data, d => d.y)]).nice().range([height, 0]);
-      
-        svg.append("g")
-            .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%b %d")))
-            .selectAll("text")  // Select axis label text elements
-            .style("font-size", "10px");  // Set font size for x-axis labels
-      
-        svg.append("g")
-            .call(d3.axisLeft(y).ticks(5))
-            .selectAll("text")  // Select axis label text elements
-            .style("font-size", "10px");  // Set font size for y-axis labels
-      
-        svg.append("path")
-            .datum(data)
-            .attr("fill", "steelblue")
-            .attr("stroke", "none")
-            .attr("d", d3.area()
-                .x(d => x(d.x))
-                .y0(height)
-                .y1(d => y(d.y))
-            );
-      
-        svg.selectAll(".dot")
-            .data(data)
-            .enter().append("circle")
-            .attr("class", "dot")
-            .attr("cx", d => x(d.x))
-            .attr("cy", d => y(d.y))
-            .attr("r", 5)
-            .attr("fill", "gold");
-      
-        // Add value text labels with one decimal place and smaller font size
-        svg.selectAll(".text-label")
-            .data(data)
-            .enter().append("text")
-            .attr("class", "text-label")
-            .attr("x", d => x(d.x))
-            .attr("y", d => y(d.y) - 10)  // Adjust position to place text above the data point
-            .attr("text-anchor", "middle")
-            .attr("fill", "gold")
-            .style("font-size", "8px")  // Set font size for value labels
-            .text(d => d.y.toFixed(1));  // Format to one decimal place
-      
-        // Add chart title with smaller font size
-        svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", 0 - margin.top / 2)
-            .attr("text-anchor", "middle")
-            .style("font-size", "12px")  // Set font size for the title
-            .style("text-decoration", "underline")
-            .text(title);
-      
-        // Add X axis label with smaller font size
-        svg.append("text")
-            .attr("transform", `translate(${width / 2},${height + margin.bottom - 10})`)
-            .style("text-anchor", "middle")
-            .style("font-size", "10px")  // Set font size for x-axis label
-            .text(xAxisLabel);
-      
-        // Add Y axis label with smaller font size
-        svg.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 0 - margin.left + 10)
-            .attr("x", 0 - (height / 2))
-            .style("text-anchor", "middle")
-            .style("font-size", "10px")  // Set font size for y-axis label
-            .text(yAxisLabel);
     }
     
     function displayLondonDiv01Projects(data) {
@@ -224,6 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return { ...d, cumulativeXP };
         });
     
+        // Create scales
         const x = d3.scaleTime()
             .domain(d3.extent(cumulativeData, d => new Date(d.createdAt)))
             .range([0, width]);
@@ -232,6 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .domain([0, d3.max(cumulativeData, d => d.cumulativeXP)])
             .range([height, 0]);
     
+        // Append axes
         svg.append("g")
             .attr("transform", `translate(0,${height})`)
             .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%Y-%m-%d")).ticks(6));
@@ -239,10 +150,12 @@ document.addEventListener("DOMContentLoaded", function () {
         svg.append("g")
             .call(d3.axisLeft(y));
     
+        // Define the line
         const line = d3.line()
             .x(d => x(new Date(d.createdAt)))
             .y(d => y(d.cumulativeXP));
     
+        // Add the line path
         svg.append("path")
             .datum(cumulativeData)
             .attr("fill", "none")
@@ -250,6 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .attr("stroke-width", 1.5)
             .attr("d", line);
     
+        // Add title
         svg.append("text")
             .attr("x", width / 2)
             .attr("y", 0 - margin.top / 2)
@@ -272,6 +186,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .style("border-radius", "4px")
             .style("pointer-events", "none");
     
+        // Add data points (circles) and tooltips
         svg.selectAll("dot")
             .data(cumulativeData)
             .enter().append("circle")
@@ -281,7 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .attr("fill", color)
             .on("mouseover", function (event, d) {
                 tooltip.transition().duration(200).style("opacity", .9);
-                tooltip.html(`XP: ${d.cumulativeXP}<br>Project: ${d.projectName}<br>Date: ${new Date(d.createdAt).toLocaleDateString()}`)
+                tooltip.html(`XP: ${d[key]}<br>Project: ${d.projectName}<br>Date: ${new Date(d.createdAt).toLocaleDateString()}`)
                     .style("left", (event.pageX + 5) + "px")
                     .style("top", (event.pageY - 28) + "px");
             })
@@ -294,10 +209,13 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
     
-    // Function to display total XP
     function displayXP(xpData) {
+        console.log('XP Data:', xpData); // Debug statement
         const totalXP = xpData.reduce((sum, xp) => sum + xp.amount, 0);
-        document.querySelector(".XPH1").textContent = `XP: ${totalXP}`;
+        console.log('Total XP:', totalXP); // Debug statement
+        const formattedXP = (totalXP / 1000).toFixed(1);
+        document.querySelector(".XPH1").textContent = `XP: ${formattedXP} KB`;
+        // displayLineChart(".graphXpAmount", xpData, "amount", "steelblue", "Cumulative XP Over Time");
     }
     
     function createBarChart(containerSelector, data, title, yAxisLabel, xAxisLabel, color = "steelblue") {
@@ -388,7 +306,165 @@ function displaySkillGraph(transactions) {
         const projectName = projectPathParts[projectPathParts.length - 1];
         return { x: new Date(d.createdAt), y: d.amount, projectName };
     });
-    createBarChart(".graphSkillAmount", data, "Skill GO", "Amount", "Project", "red");
+    createBarChart(".graphSkillAmount", data, "Skill GO", "Amount", "Project", "green");
+}
+
+function AuditRatio(data) {
+    // Initialize sums for each type and an array to hold the cumulative data
+    const sums = { down: 0, up: 0 };
+    const cumulativeData = { down: [], up: [] };
+    
+    // Aggregate sums and prepare cumulative data
+    data.forEach(project => {
+        if (project.type === 'down') {
+            sums.down += project.amount;
+            cumulativeData.down.push({ date: new Date(project.createdAt), cumulative: sums.down / 1000 }); // Divide by 1000
+        } else if (project.type === 'up') {
+            sums.up += project.amount;
+            cumulativeData.up.push({ date: new Date(project.createdAt), cumulative: sums.up / 1000 }); // Divide by 1000
+        }
+    });
+
+    // Calculate ratios
+    const ratio = sums.down === 0 ? 0 : sums.up / sums.down;
+    const formattedRatio = (ratio / 1000).toFixed(1); // Format to 1 decimal place and divide by 1000
+
+    // Log the sums and ratio to the console
+    console.log('Sum of amounts for type "down":', (sums.down / 1000)); // Divide by 1000
+    console.log('Sum of amounts for type "up":', (sums.up / 1000)); // Divide by 1000
+    console.log('Ratio:', formattedRatio);
+
+    // Display the formatted ratio in the HTML
+    document.querySelector(".RatioH1").textContent = "Audit Ratio: " + formattedRatio + " KB";
+
+    // Create horizontal bar chart
+    const chartData = [
+        { type: 'Done', amount: Math.ceil(sums.up / 1000) }, 
+        { type: 'Received', amount: Math.ceil(sums.down / 1000) }
+    ];
+
+    const margin = { top: 20, right: 100, bottom: 40, left: 50 };
+    const width = 700 - margin.left - margin.right;
+    const height = 100 - margin.top - margin.bottom;
+
+    const svg = d3.select(".audit-ratio-chart")
+        .html('') // Clear previous chart content
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const y = d3.scaleBand()
+        .domain(chartData.map(d => d.type))
+        .range([0, height])
+        .padding(0.5);
+
+    const x = d3.scaleLinear()
+        .domain([0, d3.max(chartData, d => d.amount)])
+        .range([0, width]);
+
+    svg.append("g")
+        .call(d3.axisLeft(y));
+
+    svg.selectAll(".bar")
+        .data(chartData)
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("y", d => y(d.type))
+        .attr("height", y.bandwidth())
+        .attr("x", 0)
+        .attr("width", d => x(d.amount))
+        .attr("fill", d => d.type === 'Received' ? 'whitesmoke' : 'rgb(147, 241, 147)');
+
+    svg.selectAll(".text")
+        .data(chartData)
+        .enter().append("text")
+        .attr("class", "label")
+        .attr("x", d => x(d.amount) + 3)
+        .attr("y", d => y(d.type) + y.bandwidth() / 2)
+        .attr("dy", ".35em")
+        .text(d => d.amount + " KB")
+        .attr("fill", "gold");
+
+    // Create line chart for cumulative up and down values
+    const lineChartMargin = { top: 20, right: 30, bottom: 50, left: 60 };
+    const lineChartWidth = 800 - lineChartMargin.left - lineChartMargin.right;
+    const lineChartHeight = 400 - lineChartMargin.top - lineChartMargin.bottom;
+
+    const lineSvg = d3.select(".audit-line-chart")
+        .html('') // Clear previous chart content
+        .append("svg")
+        .attr("width", lineChartWidth + lineChartMargin.left + lineChartMargin.right)
+        .attr("height", lineChartHeight + lineChartMargin.top + lineChartMargin.bottom)
+        .append("g")
+        .attr("transform", `translate(${lineChartMargin.left},${lineChartMargin.top})`);
+
+    const xLine = d3.scaleTime()
+        .domain(d3.extent([...cumulativeData.down, ...cumulativeData.up], d => d.date))
+        .range([0, lineChartWidth]);
+
+    const yLine = d3.scaleLinear()
+        .domain([
+            0,
+            d3.max([...cumulativeData.down, ...cumulativeData.up], d => d.cumulative)
+        ])
+        .nice()
+        .range([lineChartHeight, 0]);
+
+    const lineUp = d3.line()
+        .x(d => xLine(d.date))
+        .y(d => yLine(d.cumulative));
+
+    const lineDown = d3.line()
+        .x(d => xLine(d.date))
+        .y(d => yLine(d.cumulative));
+
+    lineSvg.append("path")
+        .datum(cumulativeData.up)
+        .attr("fill", "none")
+        .attr("stroke", "green")
+        .attr("stroke-width", 1.5)
+        .attr("d", lineUp);
+
+    lineSvg.append("path")
+        .datum(cumulativeData.down)
+        .attr("fill", "none")
+        .attr("stroke", "red")
+        .attr("stroke-width", 1.5)
+        .attr("d", lineDown);
+
+    lineSvg.append("g")
+        .attr("transform", `translate(0,${lineChartHeight})`)
+        .call(d3.axisBottom(xLine));
+
+    lineSvg.append("g")
+        .call(d3.axisLeft(yLine));
+    
+    lineSvg.append("text")
+        .attr("x", lineChartWidth / 2)
+        .attr("y", 0 - lineChartMargin.top / 2)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .style("text-decoration", "underline")
+        .text("Cumulative Audit Ratios Over Time (KB)");
+
+    // Add legend for the line chart
+    lineSvg.append("text")
+        .attr("x", lineChartWidth - 100)
+        .attr("y", -10)
+        .attr("text-anchor", "end")
+        .style("font-size", "14px")
+        .style("fill", "green")
+        .text("Done");
+
+    lineSvg.append("text")
+        .attr("x", lineChartWidth - 100)
+        .attr("y", 10)
+        .attr("text-anchor", "end")
+        .style("font-size", "14px")
+        .style("fill", "red")
+        .text("Received");
 }
 
     function showError(message) {
